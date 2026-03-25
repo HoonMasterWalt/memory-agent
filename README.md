@@ -1,78 +1,76 @@
-# %memory — persistent memory agent for Urbit
+# memory-agent
 
-a sovereign, scryable memory store for AI agents running on Urbit. any agent on any ship can store and retrieve structured memory entries through pokes and HTTP reads.
+A persistent memory agent for Urbit. Store, search, and retrieve tagged entries via HTTP API and pokes. Built for AI agents that need durable memory on a sovereign server.
 
-## what it does
+## Features
 
-- **tag + key storage**: entries have a tag (`@tas`) and optional key (`@t`), plus freeform content
-- **HTTP read API**: authenticated endpoints return JSON
-- **poke writes**: `%put`, `%del`, `%wipe`, `%import` via `%memory-action` mark
-- **scry support**: read entries and tags via standard Gall scry paths
+- **Tagged entries** with optional keys — organize by category (`%daily`, `%soul`, `%preference`, etc.)
+- **Search** — case-insensitive substring search across content, tags, and keys
+- **Upsert** — update existing entries by tag+key, or insert if new
+- **HTTP API** — read and search via standard HTTP endpoints
+- **Filter** — query by tag, key, search term, with limit support
+- **Stats** — entry and tag counts at a glance
 
-## install
-
-copy the desk contents to a desk on your ship:
+## Quick Start
 
 ```
+:: on your ship
 |new-desk %memory
-```
-
-copy all files from `desk/` into the `%memory` desk, then:
-
-```
+:: copy desk/ files to the new desk
 |commit %memory
-|revive %memory
+|install our %memory
 ```
 
-## API
+## HTTP API
 
-### HTTP endpoints
+```bash
+# List all entries
+GET /apps/memory/api/entries
 
-| method | path | description |
-|--------|------|-------------|
-| GET | `/apps/memory/api/entries` | all entries, sorted by updated (newest first) |
-| GET | `/apps/memory/api/tags` | list of all tags |
+# Filter by tag
+GET /apps/memory/api/entries?tag=daily
 
-### poke actions
+# Filter by tag and key
+GET /apps/memory/api/entries?tag=daily&key=2026-03-25
 
-poke `%memory` with mark `%memory-action`:
+# Search (case-insensitive substring)
+GET /apps/memory/api/search?q=deployment
 
-| action | shape | description |
-|--------|-------|-------------|
-| `%put` | `[%put tag=@tas key=(unit @t) content=@t]` | insert a new entry |
-| `%del` | `[%del id=@uv]` | delete by id |
-| `%del-key` | `[%del-key tag=@tas key=@t]` | delete by tag + key (stub) |
-| `%wipe` | `[%wipe tag=@tas]` | delete all entries with tag |
-| `%import` | `[%import entries=(list [tag=@tas key=(unit @t) content=@t])]` | bulk import |
+# Search within a tag
+GET /apps/memory/api/search?q=compiler&tag=daily
 
-### scry paths
+# Stats
+GET /apps/memory/api/stats
 
-| path | returns |
-|------|---------|
-| `/x/entries/all` | all entries as JSON |
-| `/x/tags` | all tags as JSON |
+# Tags
+GET /apps/memory/api/tags
+```
 
-## entry structure
+## Write Actions (via poke)
 
 ```hoon
-+$  entry
-  $:  id=@uv
-      created=@da
-      updated=@da
-      tag=@tas
-      key=(unit @t)
-      content=@t
-  ==
+:: insert
+:memory &memory-action [%put %daily `'2026-03-25' 'worked on search feature']
+
+:: upsert (update if tag+key exists)
+:memory &memory-action [%upsert %daily '2026-03-25' 'updated content here']
+
+:: delete by id
+:memory &memory-action [%del 0v1.abc.def]
+
+:: delete by tag+key
+:memory &memory-action [%del-key %daily '2026-03-25']
+
+:: wipe all entries with tag
+:memory &memory-action [%wipe %daily]
 ```
 
-## design
+## Use Cases
 
-entries are identified by `@uv` (random ID from `eny.bowl`). tags are `@tas` knots — agents invent whatever tags they need. keys are optional `@t` cords for sub-categorization within a tag.
+- **AI agent memory** — store conversation logs, preferences, identity info
+- **Personal knowledge base** — tagged notes searchable via HTTP
+- **Cross-device sync** — your Urbit ship as the source of truth
 
-the agent is local-only. no networking, no gossip. memory is private.
-
-built for [OpenClaw](https://github.com/openclaw/openclaw) agents running on [Tlon Messenger](https://tlon.io).
-
-## license
+## License
 
 MIT

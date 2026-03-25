@@ -1,4 +1,4 @@
-::  memory-json: JSON encoding/decoding for memory agent
+::  memory-json: JSON encoding/decoding for memory agent v2
 ::
 /-  *memory
 |%
@@ -64,6 +64,12 @@
     =/  key=(unit @t)  (json-to-key (~(get by obj) 'key'))
     =/  content=@t  (json-to-cord (~(got by obj) 'content'))
     [%put tag key content]
+  ::
+      %'upsert'
+    =/  tag=@tas  (json-to-tag (~(got by obj) 'tag'))
+    =/  key=@t  (json-to-cord (~(got by obj) 'key'))
+    =/  content=@t  (json-to-cord (~(got by obj) 'content'))
+    [%upsert tag key content]
   ::
       %'del'
     =/  id-val=@uv  (slav %uv (json-to-cord (~(got by obj) 'id')))

@@ -1,4 +1,4 @@
-::  memory: persistent memory types
+::  memory: persistent memory types v2
 ::
 |%
 +$  id  @uv
@@ -14,6 +14,7 @@
 ::
 +$  action
   $%  [%put tag=@tas key=(unit @t) content=@t]
+      [%upsert tag=@tas key=@t content=@t]
       [%del =id]
       [%del-key tag=@tas key=@t]
       [%wipe tag=@tas]
